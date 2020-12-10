@@ -1,0 +1,156 @@
+<html>
+  <head>
+    <title>Nyan Nitro</title>
+    <link href="https://fonts.googleapis.com/css?family=Bubblegum+Sans" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/pinkfluffyunicorn@1.0.1/dist/pinkfluffyunicorn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pinkfluffyunicorn@1.0.1/dist/keyboard.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pinkfluffyunicorn@1.0.1/dist/eventemitter.min.js"></script>
+  </head>
+  <body>
+    <div id="unicorn-display"></div>
+    <script>
+      var counter = 0;
+      function getRandomInt( number ) {
+          return Math.floor( number * Math.random() );
+      }
+
+      function Init() {
+        // Add Initialization Here
+        // Unicorn.Load( "fart", "assets/fart-2.wav" );
+        // Unicorn.Load( "unicorn", "assets/Unicorn.png" );
+        // Unicorn.Load( "ball", "assets/Ball.png" );
+        Unicorn.Load({
+          "fart": "assets/fart-2.wav",
+          "unicorn": "assets/Unicorn.png",
+          "ball": "assets/Ball.png",
+        });
+
+        Unicorn.AddObject( {
+          "ball1": {
+            type: "circle",
+            x: 64, y: 64,
+            radius: 64,
+            sprite: "ball",
+            friction: 0.01,
+            onHover: function() {
+              this.alpha = 0.5;
+            },
+            onLeave: function() {
+              this.alpha = 1;
+            }
+          },
+          "ball2": {
+            type: "circle",
+            x: 256, y: 64,
+            radius: 64,
+            // sprite: "ball",
+            friction: 0.02
+          }
+        });
+
+        Unicorn.Load( "hamster", "assets/rainbowHammie.png" );
+        Unicorn.AddOverlay( "icon", "unicorn", 100, 100 );
+        Unicorn.AddOverlay( "icon2", "ball", 150, 100, { z: 100 } );
+        Unicorn.AddOverlay( "icon3", "unicorn", 200, 100 );
+        Unicorn.AddText( "title", "Pink Fluffy Unicorn Game Engine", 50, 50, {
+          fontFamily: 'Bubblegum Sans',
+          fontSize: 36,
+          fontWeight: 'bold',
+          fill: "#ffffff"
+        });
+        Unicorn.AddObject( "box", {
+          type: "rectangle",
+          x: 64, y: 300,
+          width: 128, height: 128,
+          // sprite: "unicorn",
+          // bounce: 3,
+          isStatic: true
+        } );
+        Unicorn.AddDetector( "detect", {
+          type: "rectangle",
+          x: 64, y: 300,
+          width: 128, height: 128
+        }, ( label, body ) => {
+          console.log( "Enter:", label, body );
+          Unicorn.PlaySound( "fart", {
+            volume: 0.25
+          } );
+        }, ( label, body ) => {
+          console.log( "Exit:", label, body );
+        } );
+        Unicorn.AddObject( "ball1", {
+          type: "circle",
+          x: 64, y: 64,
+          radius: 64,
+          sprite: "ball",
+          friction: 0.01,
+          onHover: function() {
+            this.alpha = 0.5;
+          },
+          onLeave: function() {
+            this.alpha = 1;
+          }
+        } );
+        Unicorn.AddObject( "ball2", {
+          type: "circle",
+          x: 256, y: 64,
+          radius: 64,
+          // sprite: "ball",
+          friction: 0.02
+        } );
+        Unicorn.ConnectObjects( "ball1", "ball2", {
+          length: 192,
+          damping: 0.5,
+          stiffness: 0.2
+        } );
+        Unicorn.ConnectObjects( "", "ball2", {
+          damping: 0.5,
+          stiffness: 0.2
+        }, { x: 300, y: 0 } );
+
+        Unicorn.AddTimer( "boom", 5000, () => {
+          Unicorn.SetVelocity( "ball1", 50, -10 );
+          Unicorn.ResetTimer( "boom", 2000 );
+        } )
+      }
+
+      function Update( timestamp, timeDiffInMs ) {
+        // Add Update Loop
+        // console.log( timestamp, timeDiffInMs );
+        if( timestamp > 5000 ) {
+          Unicorn.RemoveOverlay( "icon" );
+        }
+      }
+
+      function OnChatCommand( user, command, message, flags, extra ) {
+        // Handle Chat Commands
+        if( flags.broadcaster && command == "test" ) {
+          console.log( "!test was typed in chat" );
+        }
+        if( flags.broadcaster && command == "disconnect" ) {
+          Unicorn.DisconnectObjects( "", "ball2" );
+        }
+      }
+
+      function OnChatMessage( user, message, flags, self, extra ) {
+        // Handle Chat Messages
+      }
+
+      window.addEventListener('load', () => {
+        Unicorn.Create( "unicorn-display", {
+          width: 1280,
+          height: 720,
+          // background: "#000000",// "transparent",
+          background: "transparent",
+          init: Init,
+          update: Update,
+          channel: "Instafluff",
+          onCommand: OnChatCommand,
+          onChat: OnChatMessage,
+          // screenWalls: false // Default: true
+          // gravity: { x: 0, y: 0.5 } // Default: { x: 0, y: 1 }
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "name": "nyannitro",
+  "version": "1.0.0",
+  "description": "A purrfect racing game full of feline fever built for Honest Jam 2020",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/instafluff/NyanNitro.git"
+  },
+  "keywords": [
+    "Instafluff",
+    "Honest",
+    "Jam",
+    "2020",
+    "Game",
+    "Dev"
+  ],
+  "author": "Instafluff",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/instafluff/NyanNitro/issues"
+  },
+  "homepage": "https://github.com/instafluff/NyanNitro#readme",
+  "dependencies": {
+    "webwebweb": "^1.4.0"
+  }
+}
