@@ -3,60 +3,106 @@
     <title>Nyan Nitro</title>
     <link href="https://fonts.googleapis.com/css?family=Bubblegum+Sans" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/pinkfluffyunicorn@1.0.1/dist/pinkfluffyunicorn.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pinkfluffyunicorn@1.0.1/dist/keyboard.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pinkfluffyunicorn@1.0.1/dist/eventemitter.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pinkfluffyunicorn@1.0.1/dist/keyboard.min.js"></script>
   </head>
   <body>
     <div id="unicorn-display"></div>
     <script>
       var counter = 0;
+	  var prevCatX = 0;
+	  var scrollX = 0;
+	  var playerCat = null;
+	  var gameObjects = [];
       function getRandomInt( number ) {
           return Math.floor( number * Math.random() );
       }
 
       function Init() {
+		  keyboard.on( "keydown", key => console.log( key ) );
         // Add Initialization Here
         // Unicorn.Load( "fart", "assets/fart-2.wav" );
         // Unicorn.Load( "unicorn", "assets/Unicorn.png" );
         // Unicorn.Load( "ball", "assets/Ball.png" );
         Unicorn.Load({
-          "fart": "assets/fart-2.wav",
-          "unicorn": "assets/Unicorn.png",
-          "ball": "assets/Ball.png",
+          "cat": "web/TurboCat.png",
         });
 
-        Unicorn.AddObject( {
-          "ball1": {
+        playerCat = Unicorn.AddObject( "TurboCat", {
             type: "circle",
             x: 64, y: 64,
-            radius: 64,
-            sprite: "ball",
-            friction: 0.01,
-            onHover: function() {
-              this.alpha = 0.5;
-            },
-            onLeave: function() {
-              this.alpha = 1;
-            }
-          },
-          "ball2": {
-            type: "circle",
-            x: 256, y: 64,
-            radius: 64,
-            // sprite: "ball",
-            friction: 0.02
-          }
+            radius: 32,
+			scale: { x: 2, y: 2 },
+            sprite: "cat",
+            // friction: 0.01,
+            // onHover: function() {
+            //   this.alpha = 0.5;
+            // },
+            // onLeave: function() {
+            //   this.alpha = 1;
+            // }
+          });
+
+		gameObjects = Unicorn.AddObject( {
+			"box1": {
+	            type: "rectangle",
+	            x: 1280, y: 720,
+	            width: 128, height: 128,
+				// angle: Math.PI / 4,
+	            // friction: 0.01,
+	            // onHover: function() {
+	            //   this.alpha = 0.5;
+	            // },
+	            // onLeave: function() {
+	            //   this.alpha = 1;
+	            // }
+				isStatic: true,
+	      	},
+	        "box2": {
+	          type: "rectangle",
+	          x: 1600, y: 720,
+	          width: 256, height: 256,
+				// angle: Math.PI / 4,
+	          // friction: 0.01,
+	          // onHover: function() {
+	          //   this.alpha = 0.5;
+	          // },
+	          // onLeave: function() {
+	          //   this.alpha = 1;
+	          // }
+				isStatic: true,
+	        },
+	        "box3": {
+	          type: "rectangle",
+	          x: 2400, y: 720,
+	          width: 512, height: 512,
+				// angle: Math.PI / 4,
+	          // friction: 0.01,
+	          // onHover: function() {
+	          //   this.alpha = 0.5;
+	          // },
+	          // onLeave: function() {
+	          //   this.alpha = 1;
+	          // }
+				isStatic: true,
+	        },
         });
 
-        Unicorn.Load( "hamster", "assets/rainbowHammie.png" );
-        Unicorn.AddOverlay( "icon", "unicorn", 100, 100 );
-        Unicorn.AddOverlay( "icon2", "ball", 150, 100, { z: 100 } );
-        Unicorn.AddOverlay( "icon3", "unicorn", 200, 100 );
-        Unicorn.AddText( "title", "Pink Fluffy Unicorn Game Engine", 50, 50, {
+		gameObjects.forEach( o => {
+			Matter.Body.rotate( o, Math.PI / 4 );
+		});
+
+		// gameObjects[ 0 ].density = 1;
+		// gameObjects[ 0 ].inertia = 0;
+		// gameObjects[ 0 ].inverseInertia = 0;
+
+		console.log( gameObjects[ 0 ] );
+
+        Unicorn.AddText( "title", "Nyan Nitro Fluffy Fast Feline", 50, 50, {
           fontFamily: 'Bubblegum Sans',
           fontSize: 36,
           fontWeight: 'bold',
-          fill: "#ffffff"
+          fill: "#000000"
         });
         Unicorn.AddObject( "box", {
           type: "rectangle",
@@ -72,64 +118,85 @@
           width: 128, height: 128
         }, ( label, body ) => {
           console.log( "Enter:", label, body );
-          Unicorn.PlaySound( "fart", {
-            volume: 0.25
-          } );
         }, ( label, body ) => {
           console.log( "Exit:", label, body );
         } );
-        Unicorn.AddObject( "ball1", {
-          type: "circle",
-          x: 64, y: 64,
-          radius: 64,
-          sprite: "ball",
-          friction: 0.01,
-          onHover: function() {
-            this.alpha = 0.5;
-          },
-          onLeave: function() {
-            this.alpha = 1;
-          }
-        } );
-        Unicorn.AddObject( "ball2", {
-          type: "circle",
-          x: 256, y: 64,
-          radius: 64,
-          // sprite: "ball",
-          friction: 0.02
-        } );
-        Unicorn.ConnectObjects( "ball1", "ball2", {
-          length: 192,
-          damping: 0.5,
-          stiffness: 0.2
-        } );
-        Unicorn.ConnectObjects( "", "ball2", {
-          damping: 0.5,
-          stiffness: 0.2
-        }, { x: 300, y: 0 } );
+		//
+        // Unicorn.AddObject( "ball2", {
+        //   type: "circle",
+        //   x: 256, y: 64,
+        //   radius: 64,
+        //   // sprite: "ball",
+        //   friction: 0.02
+        // } );
+        // Unicorn.ConnectObjects( "ball1", "ball2", {
+        //   length: 192,
+        //   damping: 0.5,
+        //   stiffness: 0.2
+        // } );
+        // Unicorn.ConnectObjects( "", "ball2", {
+        //   damping: 0.5,
+        //   stiffness: 0.2
+        // }, { x: 300, y: 0 } );
 
-        Unicorn.AddTimer( "boom", 5000, () => {
-          Unicorn.SetVelocity( "ball1", 50, -10 );
-          Unicorn.ResetTimer( "boom", 2000 );
-        } )
+        // Unicorn.AddTimer( "boom", 5000, () => {
+        //   Unicorn.SetVelocity( "ball1", 50, -10 );
+        //   Unicorn.ResetTimer( "boom", 2000 );
+        // } )
+
+
+		// Set Walls
+		const worldSize = 10000;
+		Matter.World.add( physics.world, [ Matter.Bodies.rectangle( worldSize / 2, -50 - 500, worldSize * 2, 100, { isStatic: true } ) ] );
+		Matter.World.add( physics.world, [ Matter.Bodies.rectangle( worldSize / 2, opts.height + 50, worldSize * 2, 100, { isStatic: true } ) ] );
+		Matter.World.add( physics.world, [ Matter.Bodies.rectangle( -50, opts.height * 2 / 2, 100, opts.height * 2 * 2, { isStatic: true } ) ] );
+		Matter.World.add( physics.world, [ Matter.Bodies.rectangle( worldSize + 50, opts.height * 2 / 2, 100, opts.height * 2 * 2, { isStatic: true } ) ] );
+
+		Matter.Events.on( physics, "beforeUpdate", () => {
+			// console.log( "moving all the things!", playerCat.position.x );
+			// const xMove = 1280 / 2 - playerCat.position.x;
+			// console.log( xMove );
+			// physics.world.bodies.forEach( obj => {
+			// 	if( obj.label !== "Rectangle Body" ) {
+			// 		console.log( obj );
+			// 		obj.position.x += xMove;
+			// 		// if( obj.label !== "TurboCat" ) {
+			// 		// 	obj.inertia = 0;
+			// 		// 	obj.inverseInertia = 0;
+			// 		// }
+			// 	}
+			// });
+		});
       }
 
       function Update( timestamp, timeDiffInMs ) {
         // Add Update Loop
         // console.log( timestamp, timeDiffInMs );
-        if( timestamp > 5000 ) {
-          Unicorn.RemoveOverlay( "icon" );
-        }
+		if( kbState[ " " ] ) {
+			// Unicorn.SetVelocity( "TurboCat", playerCat.velocity.x, playerCat.velocity.y - 2 );
+			playerCat.force.y = -0.01;
+			console.log( physics.world );
+		}
+		if( kbState[ "ArrowLeft" ] ) {
+			playerCat.force.x = -0.01;
+		}
+		if( kbState[ "ArrowRight" ] ) {
+			playerCat.force.x = 0.01;
+		}
+
+		const xDiff = playerCat.position.x - prevCatX;
+		prevCatX = playerCat.position.x;
+		scrollX += xDiff;
+		// console.log( scrollX );
+		Object.keys( objectSprite ).forEach( x => {
+			// if( x.label !== "TurboCat" ) {
+				objectSprite[ x ].x -= scrollX - 1280 / 2;
+			// }
+		});
       }
 
       function OnChatCommand( user, command, message, flags, extra ) {
         // Handle Chat Commands
-        if( flags.broadcaster && command == "test" ) {
-          console.log( "!test was typed in chat" );
-        }
-        if( flags.broadcaster && command == "disconnect" ) {
-          Unicorn.DisconnectObjects( "", "ball2" );
-        }
       }
 
       function OnChatMessage( user, message, flags, self, extra ) {
@@ -147,7 +214,7 @@
           channel: "Instafluff",
           onCommand: OnChatCommand,
           onChat: OnChatMessage,
-          // screenWalls: false // Default: true
+          screenWalls: false // Default: true
           // gravity: { x: 0, y: 0.5 } // Default: { x: 0, y: 1 }
         });
       });
