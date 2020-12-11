@@ -9,215 +9,321 @@
   <body>
     <div id="unicorn-display"></div>
     <script>
-      var counter = 0;
-	  var prevCatX = 0;
-	  var scrollX = 0;
-	  var playerCat = null;
-	  var gameObjects = [];
-      function getRandomInt( number ) {
-          return Math.floor( number * Math.random() );
-      }
+        window.WebFontConfig = {
+            google: {
+                families: [ "Acme" ]
+            },
+            active() {
+                CreateGame();
+            },
+        };
 
-      function Init() {
-		  keyboard.on( "keydown", key => console.log( key ) );
-        // Add Initialization Here
-        // Unicorn.Load( "fart", "assets/fart-2.wav" );
-        // Unicorn.Load( "unicorn", "assets/Unicorn.png" );
-        // Unicorn.Load( "ball", "assets/Ball.png" );
-        Unicorn.Load({
-          "cat": "web/TurboCat.png",
-        });
+        /* eslint-disable */
+        // include the web-font loader script
+        (function() {
+            const wf = document.createElement('script');
+            wf.src = `${document.location.protocol === 'https:' ? 'https' : 'http'
+            }://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js`;
+            wf.type = 'text/javascript';
+            wf.async = 'true';
+            const s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(wf, s);
+        }());
+        /* eslint-enabled */
 
-        playerCat = Unicorn.AddObject( "TurboCat", {
-            type: "circle",
-            x: 64, y: 64,
-            radius: 32,
-			scale: { x: 2, y: 2 },
-            sprite: "cat",
-            // friction: 0.01,
-            // onHover: function() {
-            //   this.alpha = 0.5;
-            // },
-            // onLeave: function() {
-            //   this.alpha = 1;
-            // }
-          });
+        var counter = 0;
+        var levelTime = 0;
 
-		gameObjects = Unicorn.AddObject( {
-			"box1": {
-	            type: "rectangle",
-	            x: 1280, y: 720,
-	            width: 128, height: 128,
-				// angle: Math.PI / 4,
-	            // friction: 0.01,
-	            // onHover: function() {
-	            //   this.alpha = 0.5;
-	            // },
-	            // onLeave: function() {
-	            //   this.alpha = 1;
-	            // }
-				isStatic: true,
-	      	},
-	        "box2": {
-	          type: "rectangle",
-	          x: 1600, y: 720,
-	          width: 256, height: 256,
-				// angle: Math.PI / 4,
-	          // friction: 0.01,
-	          // onHover: function() {
-	          //   this.alpha = 0.5;
-	          // },
-	          // onLeave: function() {
-	          //   this.alpha = 1;
-	          // }
-				isStatic: true,
-	        },
-	        "box3": {
-	          type: "rectangle",
-	          x: 2400, y: 720,
-	          width: 512, height: 512,
-				// angle: Math.PI / 4,
-	          // friction: 0.01,
-	          // onHover: function() {
-	          //   this.alpha = 0.5;
-	          // },
-	          // onLeave: function() {
-	          //   this.alpha = 1;
-	          // }
-				isStatic: true,
-	        },
-        });
+        var player = {
+            prevX: 0,
+            scrollX: 0,
+            isOnGround: false,
+            touches: {},
+            object: null,
+            power: 0,
+            boost: false
+        };
 
-		gameObjects.forEach( o => {
-			Matter.Body.rotate( o, Math.PI / 4 );
-		});
+        var ui = {
+            powerBar: null
+        };
 
-		// gameObjects[ 0 ].density = 1;
-		// gameObjects[ 0 ].inertia = 0;
-		// gameObjects[ 0 ].inverseInertia = 0;
+        var gameObjects = [];
+        function getRandomInt( number ) {
+            return Math.floor( number * Math.random() );
+        }
 
-		console.log( gameObjects[ 0 ] );
+        function msToTime( s ) {
+            // Pad to 2 or 3 digits, default is 2
+            function pad(n, z) {
+                z = z || 2;
+                return ('00' + n).slice(-z);
+            }
 
-        Unicorn.AddText( "title", "Nyan Nitro Fluffy Fast Feline", 50, 50, {
-          fontFamily: 'Bubblegum Sans',
-          fontSize: 36,
-          fontWeight: 'bold',
-          fill: "#000000"
-        });
-        Unicorn.AddObject( "box", {
-          type: "rectangle",
-          x: 64, y: 300,
-          width: 128, height: 128,
-          // sprite: "unicorn",
-          // bounce: 3,
-          isStatic: true
-        } );
-        Unicorn.AddDetector( "detect", {
-          type: "rectangle",
-          x: 64, y: 300,
-          width: 128, height: 128
-        }, ( label, body ) => {
-          console.log( "Enter:", label, body );
-        }, ( label, body ) => {
-          console.log( "Exit:", label, body );
-        } );
-		//
-        // Unicorn.AddObject( "ball2", {
-        //   type: "circle",
-        //   x: 256, y: 64,
-        //   radius: 64,
-        //   // sprite: "ball",
-        //   friction: 0.02
-        // } );
-        // Unicorn.ConnectObjects( "ball1", "ball2", {
-        //   length: 192,
-        //   damping: 0.5,
-        //   stiffness: 0.2
-        // } );
-        // Unicorn.ConnectObjects( "", "ball2", {
-        //   damping: 0.5,
-        //   stiffness: 0.2
-        // }, { x: 300, y: 0 } );
+            var ms = s % 1000;
+            s = ( s - ms ) / 1000;
+            var secs = s % 60;
+            s = ( s - secs ) / 60;
+            var mins = s % 60;
 
-        // Unicorn.AddTimer( "boom", 5000, () => {
-        //   Unicorn.SetVelocity( "ball1", 50, -10 );
-        //   Unicorn.ResetTimer( "boom", 2000 );
-        // } )
+            return pad( mins ) + ':' + pad( secs ) + '.' + pad( Math.floor( ms ), 3 );
+        }
+
+        function Init() {
+            PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
+            // keyboard.on( "keydown", key => console.log( key ) );
+
+            Unicorn.Load({
+                "cat": "web/TurboCat.png",
+                "bar": "web/bar.png",
+            });
+
+            player.object = Unicorn.AddObject( "TurboCat", {
+                type: "circle",
+                x: 64, y: 64,
+                radius: 32,
+            	scale: { x: 2, y: 2 },
+                sprite: "cat",
+                // friction: 0.01,
+                // onHover: function() {
+                //   this.alpha = 0.5;
+                // },
+                // onLeave: function() {
+                //   this.alpha = 1;
+                // }
+                onEnter: ( label, body ) => {
+                    player.touches[ body.id ] = true;
+                    player.isOnGround = ( Object.keys( player.touches ).some( x => !!player.touches[ x ] ) );
+                    // console.log( "ground:", player.isOnGround );
+                },
+                onExit: ( label, body ) => {
+                    delete player.touches[ body.id ];
+                    player.isOnGround = ( Object.keys( player.touches ).some( x => !!player.touches[ x ] ) );
+                    // console.log( "ground:", player.isOnGround );
+                }
+              });
+
+            gameObjects = Unicorn.AddObject( {
+            	"box1": {
+                    type: "rectangle",
+                    x: 1280, y: 720,
+                    width: 128, height: 128,
+            		// angle: Math.PI / 4,
+                    // friction: 0.01,
+                    // onHover: function() {
+                    //   this.alpha = 0.5;
+                    // },
+                    // onLeave: function() {
+                    //   this.alpha = 1;
+                    // }
+            		isStatic: true,
+              	},
+                "box2": {
+                  type: "rectangle",
+                  x: 1600, y: 720,
+                  width: 256, height: 256,
+            		// angle: Math.PI / 4,
+                  // friction: 0.01,
+                  // onHover: function() {
+                  //   this.alpha = 0.5;
+                  // },
+                  // onLeave: function() {
+                  //   this.alpha = 1;
+                  // }
+            		isStatic: true,
+                },
+                "box3": {
+                  type: "rectangle",
+                  x: 2400, y: 720,
+                  width: 512, height: 512,
+            		// angle: Math.PI / 4,
+                  // friction: 0.01,
+                  // onHover: function() {
+                  //   this.alpha = 0.5;
+                  // },
+                  // onLeave: function() {
+                  //   this.alpha = 1;
+                  // }
+            		isStatic: true,
+                },
+            });
+
+            // Rotate ramps
+            gameObjects.forEach( o => {
+            	Matter.Body.rotate( o, Math.PI / 4 );
+            });
+
+            console.log( gameObjects[ 0 ] );
+
+            Unicorn.AddText( "title", "Level 1", 50, 50, {
+                fontFamily: 'Acme',
+                fontSize: 36,
+                fontWeight: 'bold',
+                fill: "#ffffff"
+            });
+            ui.timer = Unicorn.AddText( "levelTimer", "0:00.00", 200, 50, {
+                fontFamily: 'Acme',
+                fontSize: 36,
+                fontWeight: 'bold',
+                fill: "#ffffff"
+            });
+            ui.powerText = Unicorn.AddText( "powerBarText", "Power", 1280 / 2, 40, {
+                fontFamily: 'Acme',
+                fontSize: 36,
+                fontWeight: 'bold',
+                fill: "#ffffff"
+            });
+            ui.powerText.anchor.set( 0.5 );
+            ui.powerBarBG = Unicorn.AddOverlay( "powerBarBG", "bar", 560, 70, {
+                scale: { x: 40, y: 10 },
+            });
+            ui.powerBarBG.tint = 0x000000;
+            ui.powerBar = Unicorn.AddOverlay( "powerBar", "bar", 560, 70, {
+                scale: { x: 0, y: 10 },
+            });
+
+            Unicorn.AddObject( "box", {
+                type: "rectangle",
+                x: 64, y: 300,
+                width: 128, height: 128,
+                // sprite: "unicorn",
+                // bounce: 3,
+                isStatic: true
+            } );
+            Unicorn.AddDetector( "goal", {
+                type: "rectangle",
+                x: 64, y: 300,
+                width: 128, height: 128
+            }, ( label, body ) => {
+                console.log( "Enter:", label, body );
+            }, ( label, body ) => {
+                console.log( "Exit:", label, body );
+            } );
+
+            //
+            // Unicorn.AddObject( "ball2", {
+            //   type: "circle",
+            //   x: 256, y: 64,
+            //   radius: 64,
+            //   // sprite: "ball",
+            //   friction: 0.02
+            // } );
+            // Unicorn.ConnectObjects( "ball1", "ball2", {
+            //   length: 192,
+            //   damping: 0.5,
+            //   stiffness: 0.2
+            // } );
+            // Unicorn.ConnectObjects( "", "ball2", {
+            //   damping: 0.5,
+            //   stiffness: 0.2
+            // }, { x: 300, y: 0 } );
+
+            // Unicorn.AddTimer( "boom", 5000, () => {
+            //   Unicorn.SetVelocity( "ball1", 50, -10 );
+            //   Unicorn.ResetTimer( "boom", 2000 );
+            // } )
 
 
-		// Set Walls
-		const worldSize = 10000;
-		Matter.World.add( physics.world, [ Matter.Bodies.rectangle( worldSize / 2, -50 - 500, worldSize * 2, 100, { isStatic: true } ) ] );
-		Matter.World.add( physics.world, [ Matter.Bodies.rectangle( worldSize / 2, opts.height + 50, worldSize * 2, 100, { isStatic: true } ) ] );
-		Matter.World.add( physics.world, [ Matter.Bodies.rectangle( -50, opts.height * 2 / 2, 100, opts.height * 2 * 2, { isStatic: true } ) ] );
-		Matter.World.add( physics.world, [ Matter.Bodies.rectangle( worldSize + 50, opts.height * 2 / 2, 100, opts.height * 2 * 2, { isStatic: true } ) ] );
+            // Set Walls
+            const worldSize = 10000;
+            Matter.World.add( physics.world, [ Matter.Bodies.rectangle( worldSize / 2, -50 - 500, worldSize * 2, 100, { isStatic: true } ) ] );
+            Matter.World.add( physics.world, [ Matter.Bodies.rectangle( worldSize / 2, opts.height + 50, worldSize * 2, 100, { isStatic: true } ) ] );
+            Matter.World.add( physics.world, [ Matter.Bodies.rectangle( -50, opts.height * 2 / 2, 100, opts.height * 2 * 2, { isStatic: true } ) ] );
+            Matter.World.add( physics.world, [ Matter.Bodies.rectangle( worldSize + 50, opts.height * 2 / 2, 100, opts.height * 2 * 2, { isStatic: true } ) ] );
 
-		Matter.Events.on( physics, "beforeUpdate", () => {
-			// console.log( "moving all the things!", playerCat.position.x );
-			// const xMove = 1280 / 2 - playerCat.position.x;
-			// console.log( xMove );
-			// physics.world.bodies.forEach( obj => {
-			// 	if( obj.label !== "Rectangle Body" ) {
-			// 		console.log( obj );
-			// 		obj.position.x += xMove;
-			// 		// if( obj.label !== "TurboCat" ) {
-			// 		// 	obj.inertia = 0;
-			// 		// 	obj.inverseInertia = 0;
-			// 		// }
-			// 	}
-			// });
-		});
-      }
+            Matter.Events.on( physics, "beforeUpdate", () => {
+            	// console.log( "moving all the things!", player.object.position.x );
+            	// const xMove = 1280 / 2 - player.object.position.x;
+            	// console.log( xMove );
+            	// physics.world.bodies.forEach( obj => {
+            	// 	if( obj.label !== "Rectangle Body" ) {
+            	// 		console.log( obj );
+            	// 		obj.position.x += xMove;
+            	// 		// if( obj.label !== "TurboCat" ) {
+            	// 		// 	obj.inertia = 0;
+            	// 		// 	obj.inverseInertia = 0;
+            	// 		// }
+            	// 	}
+            	// });
+            });
+        }
 
-      function Update( timestamp, timeDiffInMs ) {
-        // Add Update Loop
-        // console.log( timestamp, timeDiffInMs );
-		if( kbState[ " " ] ) {
-			// Unicorn.SetVelocity( "TurboCat", playerCat.velocity.x, playerCat.velocity.y - 2 );
-			playerCat.force.y = -0.01;
-			console.log( physics.world );
-		}
-		if( kbState[ "ArrowLeft" ] ) {
-			playerCat.force.x = -0.01;
-		}
-		if( kbState[ "ArrowRight" ] ) {
-			playerCat.force.x = 0.01;
-		}
+        function Update( timestamp, timeDiffInMs ) {
+            // Add Update Loop
+            // console.log( timestamp, timeDiffInMs );
+            levelTime += timeDiffInMs;
+            ui.timer.text = msToTime( levelTime );
 
-		const xDiff = playerCat.position.x - prevCatX;
-		prevCatX = playerCat.position.x;
-		scrollX += xDiff;
-		// console.log( scrollX );
-		Object.keys( objectSprite ).forEach( x => {
-			// if( x.label !== "TurboCat" ) {
-				objectSprite[ x ].x -= scrollX - 1280 / 2;
-			// }
-		});
-      }
+            if( player.isOnGround && kbState[ " " ] ) {
+            	// Unicorn.SetVelocity( "TurboCat", player.object.velocity.x, player.object.velocity.y - 2 );
+                if( player.power < 100 ) {
+                    player.power += 10;
+            		player.object.force.y = -0.1;
+                }
+            	console.log( physics.world );
+            }
+            if( player.isOnGround && kbState[ "ArrowLeft" ] ) {
+                // Check power
+                if( player.power < 100 ) {
+            		player.object.force.x = -0.01;
+                }
+            }
+            if( player.isOnGround && kbState[ "ArrowRight" ] ) {
+                // Check power
+                if( player.power < 100 ) {
+            		player.object.force.x = 0.01;
+                }
+            }
+            if( kbState[ "ArrowLeft" ] || kbState[ "ArrowRight" ] ) {
+                if( player.power < 100 ) {
+                    player.power += 10 * timeDiffInMs / 1000;
+                }
+            }
+            else {
+                // Cooldown
+                if( player.power > 0 ) {
+                    player.power -= 20 * timeDiffInMs / 1000;
+                }
+                else {
+                    player.power = 0;
+                }
+            }
+            ui.powerBar.scale.x = Math.max( 0, Math.min( 100, player.power ) ) / 100 * 40;
 
-      function OnChatCommand( user, command, message, flags, extra ) {
-        // Handle Chat Commands
-      }
+            const xDiff = player.object.position.x - player.prevX;
+            player.prevX = player.object.position.x;
+            player.scrollX += xDiff;
+            // console.log( player.scrollX );
+            Object.keys( objectSprite ).forEach( x => {
+            	// if( x.label !== "TurboCat" ) {
+            		objectSprite[ x ].x -= player.scrollX - 1280 / 2;
+            	// }
+            });
+        }
 
-      function OnChatMessage( user, message, flags, self, extra ) {
-        // Handle Chat Messages
-      }
+        function OnChatCommand( user, command, message, flags, extra ) {
+            // Handle Chat Commands
+        }
 
-      window.addEventListener('load', () => {
-        Unicorn.Create( "unicorn-display", {
-          width: 1280,
-          height: 720,
-          // background: "#000000",// "transparent",
-          background: "transparent",
-          init: Init,
-          update: Update,
-          channel: "Instafluff",
-          onCommand: OnChatCommand,
-          onChat: OnChatMessage,
-          screenWalls: false // Default: true
-          // gravity: { x: 0, y: 0.5 } // Default: { x: 0, y: 1 }
-        });
-      });
+        function OnChatMessage( user, message, flags, self, extra ) {
+            // Handle Chat Messages
+        }
+
+        function CreateGame() {
+            Unicorn.Create( "unicorn-display", {
+                width: 1280,
+                height: 720,
+                background: 0x777777,// "transparent",
+                // background: "transparent",
+                init: Init,
+                update: Update,
+                channel: "Instafluff",
+                onCommand: OnChatCommand,
+                onChat: OnChatMessage,
+                screenWalls: false // Default: true
+                // gravity: { x: 0, y: 0.5 } // Default: { x: 0, y: 1 }
+            });
+        };
     </script>
   </body>
 </html>
