@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Nyan Nitro</title>
+    <title>Mew Mew Nitro</title>
     <link href="https://fonts.googleapis.com/css?family=Bubblegum+Sans" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/pinkfluffyunicorn@1.0.1/dist/pinkfluffyunicorn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pinkfluffyunicorn@1.0.1/dist/eventemitter.min.js"></script>
@@ -11,7 +11,7 @@
     <script>
         window.WebFontConfig = {
             google: {
-                families: [ "Acme" ]
+                families: [ "Pacifico" ]
             },
             active() {
                 CreateGame();
@@ -33,6 +33,8 @@
 
         var counter = 0;
         var levelTime = 0;
+		var isStarted = false;
+		var isFinished = false;
 
         var player = {
             prevX: 0,
@@ -70,12 +72,14 @@
         }
 
         function Init() {
+			const worldSize = 2000;
             PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
             // keyboard.on( "keydown", key => console.log( key ) );
 
             Unicorn.Load({
-                "cat": "web/TurboCat.png",
+                "cat": "web/TurboCatYellow.png",
                 "bar": "web/bar.png",
+				"giftbox": "web/giftbox.png",
             });
 
             player.object = Unicorn.AddObject( "TurboCat", {
@@ -108,6 +112,7 @@
                     type: "rectangle",
                     x: 1280, y: 720,
                     width: 128, height: 128,
+					color: "#e76f51",
             		// angle: Math.PI / 4,
                     // friction: 0.01,
                     // onHover: function() {
@@ -122,6 +127,7 @@
                   type: "rectangle",
                   x: 1600, y: 720,
                   width: 256, height: 256,
+				  color: "#e76f51",
             		// angle: Math.PI / 4,
                   // friction: 0.01,
                   // onHover: function() {
@@ -136,6 +142,7 @@
                   type: "rectangle",
                   x: 2400, y: 720,
                   width: 512, height: 512,
+				  color: "#e76f51",
             		// angle: Math.PI / 4,
                   // friction: 0.01,
                   // onHover: function() {
@@ -155,47 +162,86 @@
 
             console.log( gameObjects[ 0 ] );
 
-            Unicorn.AddText( "title", "Level 1", 50, 50, {
-                fontFamily: 'Acme',
-                fontSize: 36,
+			ui.title = Unicorn.AddText( "title", " Mew Mew Nitro ", 1280 / 2, 720 / 2, {
+                fontFamily: 'Pacifico',
+                fontSize: 128,
+                fontWeight: 'bold',
+                fill: "#e9c46a"
+            });
+			ui.title.anchor.set( 0.5 );
+			ui.title.visible = true;
+			ui.finishText = Unicorn.AddText( "finishText", " You Win! ", 1280 / 2, 720 / 3, {
+                fontFamily: 'Pacifico',
+                fontSize: 128,
+                fontWeight: 'bold',
+                fill: "#e9c46a"
+            });
+			ui.finishText.anchor.set( 0.5 );
+			ui.finishText.visible = false;
+			ui.finishTime = Unicorn.AddText( "finishTime", "Finish Time: 00:11.285", 1280 / 2, 720 / 2 + 30, {
+                fontFamily: 'Pacifico',
+                fontSize: 64,
                 fontWeight: 'bold',
                 fill: "#ffffff"
             });
-            ui.timer = Unicorn.AddText( "levelTimer", "0:00.00", 200, 50, {
-                fontFamily: 'Acme',
-                fontSize: 36,
+			ui.finishTime.anchor.set( 0.5 );
+			ui.finishTime.visible = false;
+			ui.newRecord = Unicorn.AddText( "newRecord", "Mew Record!", 1280 / 2, 720 / 2 + 120, {
+                fontFamily: 'Pacifico',
+                fontSize: 64,
+                fontWeight: 'bold',
+                fill: "#e76f51"
+            });
+			ui.newRecord.anchor.set( 0.5 );
+			ui.newRecord.visible = false;
+
+            ui.timeText = Unicorn.AddText( "timeText", "Time", 200, 40, {
+                fontFamily: 'Pacifico',
+                fontSize: 52,
                 fontWeight: 'bold',
                 fill: "#ffffff"
             });
-            ui.powerText = Unicorn.AddText( "powerBarText", "Power", 1280 / 2, 40, {
-                fontFamily: 'Acme',
-                fontSize: 36,
+            ui.timeText.anchor.set( 0.5 );
+            ui.timer = Unicorn.AddText( "levelTimer", "0:00.00", 100, 60, {
+                fontFamily: 'Pacifico',
+                fontSize: 52,
                 fontWeight: 'bold',
                 fill: "#ffffff"
+            });
+            ui.powerText = Unicorn.AddText( "powerBarText", "Paw Hotness", 1280 / 2, 40, {
+                fontFamily: 'Pacifico',
+                fontSize: 52,
+                fontWeight: 'bold',
+                fill: "#ffffff",
             });
             ui.powerText.anchor.set( 0.5 );
-            ui.powerBarBG = Unicorn.AddOverlay( "powerBarBG", "bar", 560, 70, {
-                scale: { x: 40, y: 10 },
+            ui.powerBarBG = Unicorn.AddOverlay( "powerBarBG", "bar", 520, 90, {
+                scale: { x: 60, y: 10 },
             });
             ui.powerBarBG.tint = 0x000000;
-            ui.powerBar = Unicorn.AddOverlay( "powerBar", "bar", 560, 70, {
+			ui.powerBarBG.alpha = 0.5;
+            ui.powerBar = Unicorn.AddOverlay( "powerBar", "bar", 520, 90, {
                 scale: { x: 0, y: 10 },
             });
+            ui.powerBar.tint = 0xe5989b;
 
-            Unicorn.AddObject( "box", {
+            Unicorn.AddObject( "startBox", {
                 type: "rectangle",
                 x: 64, y: 300,
-                width: 128, height: 128,
+                width: 128, height: 20,
+				color: "#e76f51",
                 // sprite: "unicorn",
                 // bounce: 3,
                 isStatic: true
             } );
             Unicorn.AddDetector( "goal", {
                 type: "rectangle",
-                x: 64, y: 300,
-                width: 128, height: 128
+                x: worldSize - 100, y: 720 - 60,
+                width: 256, height: 256,
+				sprite: "giftbox",
             }, ( label, body ) => {
                 console.log( "Enter:", label, body );
+				isFinished = true;
             }, ( label, body ) => {
                 console.log( "Exit:", label, body );
             } );
@@ -225,11 +271,37 @@
 
 
             // Set Walls
-            const worldSize = 10000;
             Matter.World.add( physics.world, [ Matter.Bodies.rectangle( worldSize / 2, -50 - 500, worldSize * 2, 100, { isStatic: true } ) ] );
-            Matter.World.add( physics.world, [ Matter.Bodies.rectangle( worldSize / 2, opts.height + 50, worldSize * 2, 100, { isStatic: true } ) ] );
-            Matter.World.add( physics.world, [ Matter.Bodies.rectangle( -50, opts.height * 2 / 2, 100, opts.height * 2 * 2, { isStatic: true } ) ] );
-            Matter.World.add( physics.world, [ Matter.Bodies.rectangle( worldSize + 50, opts.height * 2 / 2, 100, opts.height * 2 * 2, { isStatic: true } ) ] );
+            // Matter.World.add( physics.world, [ Matter.Bodies.rectangle( worldSize / 2, opts.height + 50, worldSize * 2, 100, { isStatic: true } ) ] );
+            // Matter.World.add( physics.world, [ Matter.Bodies.rectangle( -50, opts.height * 2 / 2, 100, opts.height * 2 * 2, { isStatic: true } ) ] );
+            // Matter.World.add( physics.world, [ Matter.Bodies.rectangle( worldSize + 50, opts.height * 2 / 2, 100, opts.height * 2 * 2, { isStatic: true } ) ] );
+			Unicorn.AddObject( "ground", {
+	          type: "rectangle",
+	          x: worldSize / 2, y: opts.height + 40,
+	          width: worldSize * 2, height: 100,
+			  color: "#f4a261",
+	          // sprite: "unicorn",
+	          // bounce: 3,
+	          isStatic: true
+	        } );
+			Unicorn.AddObject( "wallLeft", {
+	          type: "rectangle",
+	          x: -50, y: opts.height * 2 / 2,
+	          width: 100, height: opts.height * 2 * 2,
+			  color: "#2a9d8f",
+	          // sprite: "unicorn",
+	          // bounce: 3,
+	          isStatic: true
+	        } );
+			Unicorn.AddObject( "wallRight", {
+	          type: "rectangle",
+	          x: worldSize + 50, y: opts.height * 2 / 2,
+	          width: 100, height: opts.height * 2 * 2,
+			  color: "#264653",
+	          // sprite: "unicorn",
+	          // bounce: 3,
+	          isStatic: true
+	        } );
 
             Matter.Events.on( physics, "beforeUpdate", () => {
             	// console.log( "moving all the things!", player.object.position.x );
@@ -251,54 +323,64 @@
         function Update( timestamp, timeDiffInMs ) {
             // Add Update Loop
             // console.log( timestamp, timeDiffInMs );
-            levelTime += timeDiffInMs;
-            ui.timer.text = msToTime( levelTime );
+			if( isFinished ) {
 
-            if( player.isOnGround && kbState[ " " ] ) {
-            	// Unicorn.SetVelocity( "TurboCat", player.object.velocity.x, player.object.velocity.y - 2 );
-                if( player.power < 100 ) {
-                    player.power += 10;
-            		player.object.force.y = -0.1;
-                }
-            	console.log( physics.world );
-            }
-            if( player.isOnGround && kbState[ "ArrowLeft" ] ) {
-                // Check power
-                if( player.power < 100 ) {
-            		player.object.force.x = -0.01;
-                }
-            }
-            if( player.isOnGround && kbState[ "ArrowRight" ] ) {
-                // Check power
-                if( player.power < 100 ) {
-            		player.object.force.x = 0.01;
-                }
-            }
-            if( kbState[ "ArrowLeft" ] || kbState[ "ArrowRight" ] ) {
-                if( player.power < 100 ) {
-                    player.power += 10 * timeDiffInMs / 1000;
-                }
-            }
-            else {
-                // Cooldown
-                if( player.power > 0 ) {
-                    player.power -= 20 * timeDiffInMs / 1000;
-                }
-                else {
-                    player.power = 0;
-                }
-            }
-            ui.powerBar.scale.x = Math.max( 0, Math.min( 100, player.power ) ) / 100 * 40;
+			}
+            else if( isStarted ) {
+				levelTime += timeDiffInMs;
+	            ui.timer.text = msToTime( levelTime );
 
-            const xDiff = player.object.position.x - player.prevX;
-            player.prevX = player.object.position.x;
-            player.scrollX += xDiff;
-            // console.log( player.scrollX );
-            Object.keys( objectSprite ).forEach( x => {
-            	// if( x.label !== "TurboCat" ) {
-            		objectSprite[ x ].x -= player.scrollX - 1280 / 2;
-            	// }
-            });
+	            if( player.isOnGround && ( kbState[ "w" ] || kbState[ " " ] || kbState[ "ArrowUp" ] ) ) {
+	            	// Unicorn.SetVelocity( "TurboCat", player.object.velocity.x, player.object.velocity.y - 2 );
+	                if( player.power < 100 ) {
+	                    player.power += 10;
+	            		player.object.force.y = -0.1;
+	                }
+	            	console.log( physics.world );
+	            }
+	            if( player.isOnGround && ( kbState[ "a" ] || kbState[ "ArrowLeft" ] ) ) {
+	                // Check power
+	                if( player.power < 100 ) {
+	            		player.object.force.x = -0.01;
+	                }
+	            }
+	            if( player.isOnGround && ( kbState[ "d" ] || kbState[ "ArrowRight" ] ) ) {
+	                // Check power
+	                if( player.power < 100 ) {
+	            		player.object.force.x = 0.01;
+	                }
+	            }
+	            if( kbState[ "a" ] || kbState[ "d" ] || kbState[ "ArrowLeft" ] || kbState[ "ArrowRight" ] ) {
+	                if( player.power < 100 ) {
+	                    player.power += 10 * timeDiffInMs / 1000;
+	                }
+	            }
+	            else {
+	                // Cooldown
+	                if( player.power > 0 ) {
+	                    player.power -= 20 * timeDiffInMs / 1000;
+	                }
+	                else {
+	                    player.power = 0;
+	                }
+	            }
+	            ui.powerBar.scale.x = Math.max( 0, Math.min( 100, player.power ) ) / 100 * 40;
+			}
+			else {
+				isStarted = kbState[ "ArrowLeft" ] || kbState[ "ArrowRight" ] || kbState[ "ArrowUp" ] ||
+					kbState[ "a" ] || kbState[ "d" ] || kbState[ "w" ] ||
+					kbState[ " " ];
+			}
+
+			const xDiff = player.object.position.x - player.prevX;
+			player.prevX = player.object.position.x;
+			player.scrollX += xDiff;
+			// console.log( player.scrollX );
+			Object.keys( objectSprite ).forEach( x => {
+				// if( x.label !== "TurboCat" ) {
+					objectSprite[ x ].x -= player.scrollX - 1280 / 2;
+				// }
+			});
         }
 
         function OnChatCommand( user, command, message, flags, extra ) {
@@ -313,7 +395,7 @@
             Unicorn.Create( "unicorn-display", {
                 width: 1280,
                 height: 720,
-                background: 0x777777,// "transparent",
+                background: 0xe264653,// "transparent",
                 // background: "transparent",
                 init: Init,
                 update: Update,
