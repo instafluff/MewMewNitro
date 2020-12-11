@@ -35,6 +35,7 @@
         var levelTime = 0;
 		var isStarted = false;
 		var isFinished = false;
+		var recordTime = Infinity;
 
         var player = {
             prevX: 0,
@@ -43,7 +44,8 @@
             touches: {},
             object: null,
             power: 0,
-            boost: false
+            boost: false,
+			soundReady: true
         };
 
         var ui = {
@@ -71,6 +73,15 @@
             return pad( mins ) + ':' + pad( secs ) + '.' + pad( Math.floor( ms ), 3 );
         }
 
+		async function playSound( name ) {
+			assetReference[ name ].volume = 0.25;
+			const instance = await assetReference[ name ].play();
+			console.log( instance );
+			instance.on( "end", () => {
+				player.soundReady = true;
+			} );
+		}
+
         function Init() {
 			const worldSize = 2000;
             PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
@@ -79,8 +90,61 @@
             Unicorn.Load({
                 "cat": "web/TurboCatYellow.png",
                 "bar": "web/bar.png",
+				"hillSm": "web/boxSm.png",
+				"hillMd": "web/boxMd.png",
+				"hill": "web/box.png",
+				"wall": "web/wall.png",
+				"ground": "web/ground.png",
 				"giftbox": "web/giftbox.png",
+				"title": "web/title.mp3",
+				// "landing1": "web/landing1.mp3",
+				// "jump1": "web/jump1.mp3",
+				// "jump2": "web/jump2.mp3",
+				// "jump3": "web/jump3.mp3",
+				// "jump4": "web/jump4.mp3",
+				// "mew1": "web/mew1.mp3",
+				// "mew2": "web/mew2.mp3",
+				// "mew3": "web/mew3.mp3",
+				// "mew4": "web/mew4.mp3",
+				// "win": "web/win.mp3",
+				// "winNewRecord": "web/winNewRecord.mp3",
+				// "win2": "web/win2.mp3",
+				// "winNewRecord2": "web/winNewRecord2.mp3",
+				"mewsic": "web/mewsic.mp3",
             });
+
+			assetReference[ "mewsic" ].loop = true;
+			Unicorn.PlaySound( "mewsic", {
+				volume: 0.15
+			});
+
+			const sounds = {
+				"landing1": "web/landing1.mp3",
+				"jump1": "web/jump1.mp3",
+				"jump2": "web/jump2.mp3",
+				"jump3": "web/jump3.mp3",
+				"jump4": "web/jump4.mp3",
+				"mew1": "web/mew1.mp3",
+				"mew2": "web/mew2.mp3",
+				"mew3": "web/mew3.mp3",
+				"mew4": "web/mew4.mp3",
+				"win": "web/win.mp3",
+				"winNewRecord": "web/winNewRecord.mp3",
+				"win2": "web/win2.mp3",
+				"winNewRecord2": "web/winNewRecord2.mp3",
+			};
+
+			Object.keys( sounds ).forEach( s => {
+				assetReference[ s ] = PIXI.sound.Sound.from( {
+					url: sounds[ s ],
+					complete: function() {
+						console.log( "sound ready" );
+						player.soundReady = true;
+					}
+				} );
+			});
+
+			console.log( assetReference[ "mew1" ].options );
 
             player.object = Unicorn.AddObject( "TurboCat", {
                 type: "circle",
@@ -97,8 +161,14 @@
                 // }
                 onEnter: ( label, body ) => {
                     player.touches[ body.id ] = true;
+					const wasOnGround = player.isOnGround;
                     player.isOnGround = ( Object.keys( player.touches ).some( x => !!player.touches[ x ] ) );
                     // console.log( "ground:", player.isOnGround );
+					// if( !wasOnGround && player.isOnGround ) {
+					// 	if( player.soundReady ) {
+					// 		playSound( "landing1" );
+					// 	}
+					// }
                 },
                 onExit: ( label, body ) => {
                     delete player.touches[ body.id ];
@@ -113,6 +183,8 @@
                     x: 1280, y: 720,
                     width: 128, height: 128,
 					color: "#e76f51",
+					sprite: "hillSm",
+					// scale: { x: 128 / 512, y: 128 / 512 },
             		// angle: Math.PI / 4,
                     // friction: 0.01,
                     // onHover: function() {
@@ -128,6 +200,8 @@
                   x: 1600, y: 720,
                   width: 256, height: 256,
 				  color: "#e76f51",
+				  sprite: "hillMd",
+				  // scale: { x: 256 / 512, y: 256 / 512 },
             		// angle: Math.PI / 4,
                   // friction: 0.01,
                   // onHover: function() {
@@ -143,6 +217,8 @@
                   x: 2400, y: 720,
                   width: 512, height: 512,
 				  color: "#e76f51",
+				  sprite: "hill",
+				  // scale: { x: 512 / 512, y: 512 / 512 },
             		// angle: Math.PI / 4,
                   // friction: 0.01,
                   // onHover: function() {
@@ -162,12 +238,13 @@
 
             console.log( gameObjects[ 0 ] );
 
-			ui.title = Unicorn.AddText( "title", " Mew Mew Nitro ", 1280 / 2, 720 / 2, {
+			ui.title = Unicorn.AddText( "title", " Mew Mew Nitro ", 1280 / 2, -100, {
                 fontFamily: 'Pacifico',
                 fontSize: 128,
                 fontWeight: 'bold',
                 fill: "#e9c46a"
             });
+			ui.title.vy = 0;
 			ui.title.anchor.set( 0.5 );
 			ui.title.visible = true;
 			ui.finishText = Unicorn.AddText( "finishText", " You Win! ", 1280 / 2, 720 / 3, {
@@ -186,14 +263,22 @@
             });
 			ui.finishTime.anchor.set( 0.5 );
 			ui.finishTime.visible = false;
-			ui.newRecord = Unicorn.AddText( "newRecord", "Mew Record!", 1280 / 2, 720 / 2 + 120, {
+			ui.newRecord = Unicorn.AddText( "newRecord", "Mew Record!", 1280 / 2, 720 / 2 + 100, {
                 fontFamily: 'Pacifico',
                 fontSize: 64,
                 fontWeight: 'bold',
-                fill: "#e76f51"
+                fill: "#deaaff"
             });
 			ui.newRecord.anchor.set( 0.5 );
 			ui.newRecord.visible = false;
+			ui.instructionText = Unicorn.AddText( "playAgainText", "Arrow Keys and Space to Jump", 1280 / 2, 720 / 2 + 200, {
+                fontFamily: 'Pacifico',
+                fontSize: 48,
+                fontWeight: 'bold',
+                fill: "#ffffff"
+            });
+			ui.instructionText.anchor.set( 0.5 );
+			// ui.instructionText.visible = false;
 
             ui.timeText = Unicorn.AddText( "timeText", "Time", 200, 40, {
                 fontFamily: 'Pacifico',
@@ -225,6 +310,23 @@
             });
             ui.powerBar.tint = 0xe5989b;
 
+			ui.recordTimeText = Unicorn.AddText( "recordTimeText", " Record ", 1050, 40, {
+                fontFamily: 'Pacifico',
+                fontSize: 52,
+                fontWeight: 'bold',
+                fill: "#ffffff"
+            });
+            ui.recordTimeText.anchor.set( 0.5 );
+            ui.recordTime = Unicorn.AddText( "recordTime", "        -", 940, 60, {
+                fontFamily: 'Pacifico',
+                fontSize: 52,
+                fontWeight: 'bold',
+                fill: "#ffffff"
+            });
+			if( recordTime < Infinity ) {
+				ui.recordTime.text = msToTime( recordTime );
+			}
+
             Unicorn.AddObject( "startBox", {
                 type: "rectangle",
                 x: 64, y: 300,
@@ -233,15 +335,28 @@
                 // sprite: "unicorn",
                 // bounce: 3,
                 isStatic: true
-            } );
+            } ).sprite.tint = 0x000000;
             Unicorn.AddDetector( "goal", {
                 type: "rectangle",
-                x: worldSize - 100, y: 720 - 60,
-                width: 256, height: 256,
+                x: worldSize - 100, y: 720 - 384 / 2,
+                width: 300, height: 300,
 				sprite: "giftbox",
+				scale: { x: 0.75, y: 0.75 }
             }, ( label, body ) => {
                 console.log( "Enter:", label, body );
 				isFinished = true;
+				ui.finishText.visible = true;
+				ui.finishTime.visible = true;
+				ui.finishTime.text = "Finish Time: " + msToTime( levelTime );
+				if( levelTime < recordTime ) {
+					ui.newRecord.visible = true;
+					playSound( "winNewRecord" + ( getRandomInt( 2 ) + 1 ) );
+				}
+				else {
+					playSound( "win" + ( getRandomInt( 2 ) + 1 ) );
+				}
+				ui.instructionText.text = "Press Space to Play Again";
+				ui.instructionText.alpha = 1.0;
             }, ( label, body ) => {
                 console.log( "Exit:", label, body );
             } );
@@ -275,21 +390,12 @@
             // Matter.World.add( physics.world, [ Matter.Bodies.rectangle( worldSize / 2, opts.height + 50, worldSize * 2, 100, { isStatic: true } ) ] );
             // Matter.World.add( physics.world, [ Matter.Bodies.rectangle( -50, opts.height * 2 / 2, 100, opts.height * 2 * 2, { isStatic: true } ) ] );
             // Matter.World.add( physics.world, [ Matter.Bodies.rectangle( worldSize + 50, opts.height * 2 / 2, 100, opts.height * 2 * 2, { isStatic: true } ) ] );
-			Unicorn.AddObject( "ground", {
-	          type: "rectangle",
-	          x: worldSize / 2, y: opts.height + 40,
-	          width: worldSize * 2, height: 100,
-			  color: "#f4a261",
-	          // sprite: "unicorn",
-	          // bounce: 3,
-	          isStatic: true
-	        } );
 			Unicorn.AddObject( "wallLeft", {
 	          type: "rectangle",
 	          x: -50, y: opts.height * 2 / 2,
 	          width: 100, height: opts.height * 2 * 2,
 			  color: "#2a9d8f",
-	          // sprite: "unicorn",
+	          sprite: "wall",
 	          // bounce: 3,
 	          isStatic: true
 	        } );
@@ -298,10 +404,21 @@
 	          x: worldSize + 50, y: opts.height * 2 / 2,
 	          width: 100, height: opts.height * 2 * 2,
 			  color: "#264653",
+	          sprite: "wall",
 	          // sprite: "unicorn",
 	          // bounce: 3,
 	          isStatic: true
 	        } );
+			Unicorn.AddObject( "ground", {
+	          type: "rectangle",
+	          x: worldSize / 2, y: opts.height + 40,
+	          width: worldSize * 2, height: 100,
+			  color: "#f4a261",
+	          sprite: "ground",
+			  scale: { x: 10000, y: 1 },
+	          // bounce: 3,
+	          isStatic: true
+		  	} );
 
             Matter.Events.on( physics, "beforeUpdate", () => {
             	// console.log( "moving all the things!", player.object.position.x );
@@ -318,15 +435,23 @@
             	// 	}
             	// });
             });
+
+			playSound( "title" );
         }
 
         function Update( timestamp, timeDiffInMs ) {
             // Add Update Loop
             // console.log( timestamp, timeDiffInMs );
 			if( isFinished ) {
-
+				if( kbState[ " " ] ) {
+					location.reload();
+				}
 			}
             else if( isStarted ) {
+				if( ui.title.alpha > 0 ) {
+					ui.title.alpha -= timeDiffInMs / 1000 * 2;
+					ui.instructionText.alpha -= timeDiffInMs / 1000 * 2;
+				}
 				levelTime += timeDiffInMs;
 	            ui.timer.text = msToTime( levelTime );
 
@@ -337,6 +462,11 @@
 	            		player.object.force.y = -0.1;
 	                }
 	            	console.log( physics.world );
+					// if( player.soundReady ) {
+					// overriding sound ready
+						player.soundReady = false;
+						playSound( "jump" + ( getRandomInt( 4 ) + 1 ) );
+					// }
 	            }
 	            if( player.isOnGround && ( kbState[ "a" ] || kbState[ "ArrowLeft" ] ) ) {
 	                // Check power
@@ -354,6 +484,10 @@
 	                if( player.power < 100 ) {
 	                    player.power += 10 * timeDiffInMs / 1000;
 	                }
+					if( player.soundReady ) {
+						player.soundReady = false;
+						playSound( "mew" + ( getRandomInt( 4 ) + 1 ) );
+					}
 	            }
 	            else {
 	                // Cooldown
@@ -367,6 +501,10 @@
 	            ui.powerBar.scale.x = Math.max( 0, Math.min( 100, player.power ) ) / 100 * 40;
 			}
 			else {
+				if( ui.title.y < 720 / 2 ) {
+					ui.title.vy += timeDiffInMs / 1000 * 2000;
+					ui.title.y += timeDiffInMs / 1000 * ui.title.vy;
+				}
 				isStarted = kbState[ "ArrowLeft" ] || kbState[ "ArrowRight" ] || kbState[ "ArrowUp" ] ||
 					kbState[ "a" ] || kbState[ "d" ] || kbState[ "w" ] ||
 					kbState[ " " ];
