@@ -35,7 +35,16 @@
         var levelTime = 0;
 		var isStarted = false;
 		var isFinished = false;
-		var recordTime = Infinity;
+		var recordTime = 99999999999999999999;
+
+		if( localStorage.getItem( "mewmew" ) ) {
+			console.log( localStorage.getItem( "mewmew" ) );
+			const data = JSON.parse( localStorage.getItem( "mewmew" ) ) || {
+				record: 99999999999999999999
+			};
+			console.log( data );
+			recordTime = data.record;
+		}
 
         var player = {
             prevX: 0,
@@ -83,7 +92,7 @@
 		}
 
         function Init() {
-			const worldSize = 2000;
+			const worldSize = 10000;
             PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
             // keyboard.on( "keydown", key => console.log( key ) );
 
@@ -129,7 +138,7 @@
 				"mew3": "web/mew3.mp3",
 				"mew4": "web/mew4.mp3",
 				"win": "web/win.mp3",
-				"winNewRecord": "web/winNewRecord.mp3",
+				"winNewRecord1": "web/winNewRecord1.mp3",
 				"win2": "web/win2.mp3",
 				"winNewRecord2": "web/winNewRecord2.mp3",
 			};
@@ -177,59 +186,129 @@
                 }
               });
 
-            gameObjects = Unicorn.AddObject( {
-            	"box1": {
-                    type: "rectangle",
-                    x: 1280, y: 720,
-                    width: 128, height: 128,
-					color: "#e76f51",
-					sprite: "hillSm",
-					// scale: { x: 128 / 512, y: 128 / 512 },
-            		// angle: Math.PI / 4,
-                    // friction: 0.01,
-                    // onHover: function() {
-                    //   this.alpha = 0.5;
-                    // },
-                    // onLeave: function() {
-                    //   this.alpha = 1;
-                    // }
-            		isStatic: true,
-              	},
-                "box2": {
-                  type: "rectangle",
-                  x: 1600, y: 720,
-                  width: 256, height: 256,
-				  color: "#e76f51",
-				  sprite: "hillMd",
-				  // scale: { x: 256 / 512, y: 256 / 512 },
-            		// angle: Math.PI / 4,
-                  // friction: 0.01,
-                  // onHover: function() {
-                  //   this.alpha = 0.5;
-                  // },
-                  // onLeave: function() {
-                  //   this.alpha = 1;
-                  // }
-            		isStatic: true,
-                },
-                "box3": {
-                  type: "rectangle",
-                  x: 2400, y: 720,
-                  width: 512, height: 512,
-				  color: "#e76f51",
-				  sprite: "hill",
-				  // scale: { x: 512 / 512, y: 512 / 512 },
-            		// angle: Math.PI / 4,
-                  // friction: 0.01,
-                  // onHover: function() {
-                  //   this.alpha = 0.5;
-                  // },
-                  // onLeave: function() {
-                  //   this.alpha = 1;
-                  // }
-            		isStatic: true,
-                },
-            });
+			const seed = 671265;
+			for( let x = 0; x < worldSize; x++ ) {
+				// Small
+				if( ( x * seed ) % 10000 < 20 ) {
+					counter++;
+					const obj = Unicorn.AddObject( "box" + counter, {
+	                    type: "rectangle",
+	                    x: x, y: 720,
+	                    width: 128, height: 128,
+						color: "#e76f51",
+						sprite: "hillSm",
+						// scale: { x: 128 / 512, y: 128 / 512 },
+	            		// angle: Math.PI / 4,
+	                    // friction: 0.01,
+	                    // onHover: function() {
+	                    //   this.alpha = 0.5;
+	                    // },
+	                    // onLeave: function() {
+	                    //   this.alpha = 1;
+	                    // }
+	            		isStatic: true,
+					});
+					gameObjects.push( obj );
+				}
+				// Med
+				if( ( ( x + 1 ) * seed ) * 46034 % 10000 < 5 ) {
+					counter++;
+					const obj = Unicorn.AddObject( "box" + counter, {
+	                    type: "rectangle",
+	                    x: x, y: 720,
+	                    width: 256, height: 256,
+						color: "#e76f51",
+						sprite: "hillMd",
+						// scale: { x: 128 / 512, y: 128 / 512 },
+	            		// angle: Math.PI / 4,
+	                    // friction: 0.01,
+	                    // onHover: function() {
+	                    //   this.alpha = 0.5;
+	                    // },
+	                    // onLeave: function() {
+	                    //   this.alpha = 1;
+	                    // }
+	            		isStatic: true,
+					});
+					gameObjects.push( obj );
+				}
+				// Large
+				if( ( ( x + 1 ) * seed ) * 132041 % 11000 < 4 ) {
+					counter++;
+					const obj = Unicorn.AddObject( "box" + counter, {
+	                    type: "rectangle",
+	                    x: x, y: 720,
+	                    width: 512, height: 512,
+						color: "#e76f51",
+						sprite: "hill",
+						// scale: { x: 128 / 512, y: 128 / 512 },
+	            		// angle: Math.PI / 4,
+	                    // friction: 0.01,
+	                    // onHover: function() {
+	                    //   this.alpha = 0.5;
+	                    // },
+	                    // onLeave: function() {
+	                    //   this.alpha = 1;
+	                    // }
+	            		isStatic: true,
+					});
+					gameObjects.push( obj );
+				}
+			}
+
+            // gameObjects = Unicorn.AddObject( {
+            // 	"box1": {
+            //         type: "rectangle",
+            //         x: 1280, y: 720,
+            //         width: 128, height: 128,
+			// 		color: "#e76f51",
+			// 		sprite: "hillSm",
+			// 		// scale: { x: 128 / 512, y: 128 / 512 },
+            // 		// angle: Math.PI / 4,
+            //         // friction: 0.01,
+            //         // onHover: function() {
+            //         //   this.alpha = 0.5;
+            //         // },
+            //         // onLeave: function() {
+            //         //   this.alpha = 1;
+            //         // }
+            // 		isStatic: true,
+            //   	},
+            //     "box2": {
+            //       type: "rectangle",
+            //       x: 1600, y: 720,
+            //       width: 256, height: 256,
+			// 	  color: "#e76f51",
+			// 	  sprite: "hillMd",
+			// 	  // scale: { x: 256 / 512, y: 256 / 512 },
+            // 		// angle: Math.PI / 4,
+            //       // friction: 0.01,
+            //       // onHover: function() {
+            //       //   this.alpha = 0.5;
+            //       // },
+            //       // onLeave: function() {
+            //       //   this.alpha = 1;
+            //       // }
+            // 		isStatic: true,
+            //     },
+            //     "box3": {
+            //       type: "rectangle",
+            //       x: 2400, y: 720,
+            //       width: 512, height: 512,
+			// 	  color: "#e76f51",
+			// 	  sprite: "hill",
+			// 	  // scale: { x: 512 / 512, y: 512 / 512 },
+            // 		// angle: Math.PI / 4,
+            //       // friction: 0.01,
+            //       // onHover: function() {
+            //       //   this.alpha = 0.5;
+            //       // },
+            //       // onLeave: function() {
+            //       //   this.alpha = 1;
+            //       // }
+            // 		isStatic: true,
+            //     },
+            // });
 
             // Rotate ramps
             gameObjects.forEach( o => {
@@ -323,7 +402,7 @@
                 fontWeight: 'bold',
                 fill: "#ffffff"
             });
-			if( recordTime < Infinity ) {
+			if( recordTime < 99999999999999999999 ) {
 				ui.recordTime.text = msToTime( recordTime );
 			}
 
@@ -351,6 +430,9 @@
 				if( levelTime < recordTime ) {
 					ui.newRecord.visible = true;
 					playSound( "winNewRecord" + ( getRandomInt( 2 ) + 1 ) );
+					localStorage.setItem( "mewmew", JSON.stringify({
+						record: levelTime
+					}) );
 				}
 				else {
 					playSound( "win" + ( getRandomInt( 2 ) + 1 ) );
@@ -464,8 +546,11 @@
 	            	console.log( physics.world );
 					// if( player.soundReady ) {
 					// overriding sound ready
-						player.soundReady = false;
-						playSound( "jump" + ( getRandomInt( 4 ) + 1 ) );
+						// player.soundReady = false;
+						// playSound( "jump" + ( getRandomInt( 4 ) + 1 ) );
+						Unicorn.PlaySound( "jump" + ( getRandomInt( 4 ) + 1 ), {
+							volume: 0.25
+						});
 					// }
 	            }
 	            if( player.isOnGround && ( kbState[ "a" ] || kbState[ "ArrowLeft" ] ) ) {
@@ -498,7 +583,7 @@
 	                    player.power = 0;
 	                }
 	            }
-	            ui.powerBar.scale.x = Math.max( 0, Math.min( 100, player.power ) ) / 100 * 40;
+	            ui.powerBar.scale.x = Math.max( 0, Math.min( 100, player.power ) ) / 100 * 60;
 			}
 			else {
 				if( ui.title.y < 720 / 2 ) {
