@@ -2,7 +2,7 @@
 
 We built this Racing game live on Twitch for [Honest Jam 2020](https://itch.io/jam/honest-jam)!
 
-**_Turbo cat loves Christmas and wants to sneak a peek at her gift. She has to make it over the obstacles put in her way to get that sneak peek at her Christmas gift. Race over the obstacles to reach it as fast as you can!_**
+**_Turbo cat loves Christmas and wants to sneak a peek at her gift. She has to make it over the obstacles put in her way to get that sneak peek at her Christmas gift. Race over the obstacles to reach it as fast as you can but be careful not to let your paws get too hot!_**
 
 Use **Left/Right Arrow Keys** to Move and **Space** to Jump. Good luck!
 
