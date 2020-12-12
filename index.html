@@ -85,7 +85,7 @@
 		async function playSound( name ) {
 			assetReference[ name ].volume = 0.25;
 			const instance = await assetReference[ name ].play();
-			console.log( instance );
+			// console.log( instance );
 			instance.on( "end", () => {
 				player.soundReady = true;
 			} );
@@ -594,6 +594,8 @@
 					kbState[ "a" ] || kbState[ "d" ] || kbState[ "w" ] ||
 					kbState[ " " ];
 			}
+
+            ui.powerText.tint = lerpColor( 0xffffff, 0xff0000, player.power / 100 );
 
 			const xDiff = player.object.position.x - player.prevX;
 			player.prevX = player.object.position.x;
